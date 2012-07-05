@@ -4,9 +4,14 @@
 *.o
 
 # Compiled Dynamic libraries
+*.dll
 *.so
 
 # Compiled Static libraries
 *.lai
 *.la
 *.a
+
+# Executables
+*.exe
+*.out
