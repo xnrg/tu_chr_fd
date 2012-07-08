@@ -15,3 +15,21 @@
 # Executables
 *.exe
 *.out
+
+# Code Composer Studio Project related files
+.CC430F6137.ccxml.cache
+.ccsproject
+.cdtbuild
+.cdtproject
+.project
+433MHz - Limited CCS Core Edition/
+433MHz - Unrestricted CCS Platinum/
+868MHz - Limited CCS Core Edition/
+868MHz - Unrestricted CCS Platinum/
+915MHz - Limited CCS Core Edition/
+915MHz - Unrestricted CCS Platinum/
+CC430F6137.ccxml
+.cdtbuild_initial
+.cproject
+.project_initial
+.settings/
