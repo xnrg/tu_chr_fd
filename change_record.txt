@@ -1,0 +1,16 @@
+V1.5 (16.03.2010)
+Fixed following bugs
+- main.c/init_application()							Changed XT1 drive level to highest to avoid ACLK noise when turning on backlight.
+- main.c/wakeup_event(), timer.c/TIMER0_A0_ISR()	Modified key lock procedure.
+- vti_ps.c/ps_get_temp()							Negative °C are now converted correctly to Kelvin
+
+Other changes
+- main.c/read_calibration_values()					Added range check for rf_frequoffset variable
+													Added bytes for altitude offset correction and s/w version
+- altitude.h, altitude.c							Added initial altitude offset correction 
+- SimpliciTI										Added SimpliciTI sources to project. Upgraded to Version 1.1.1.
+- RFBSL												Added wireless update support
+- Button names										Changed button names from M1/M2/S1/S2/BL to STAR/NUM/UP/DOWN/BACKLIGHT
+													
+V1.4 (22.11.2009)
+First version released to manufacturing.
