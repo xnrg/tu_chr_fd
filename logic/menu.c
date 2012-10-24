@@ -101,7 +101,7 @@ u8 update_battery_voltage(void)
 {
 	return (display.flag.update_battery_voltage);
 }
-u8 update_acceleration(void)
+u8 update_fall_detection(void)
 {
 	return (display.flag.update_acceleration);
 }
@@ -109,7 +109,7 @@ u8 update_acceleration(void)
 // *************************************************************************************************
 // User navigation ( [____] = default menu item after reset )
 //
-//	LINE1: 	[Time] -> Alarm -> Temperature -> Altitude -> Heart rate -> Speed -> Acceleration
+//	LINE1: 	[Time] -> Alarm -> Temperature -> Altitude -> Heart rate -> Speed -> Fall_Detection
 //
 //	LINE2: 	[Date] -> Stopwatch -> Battery  -> ACC -> PPT -> SYNC -> Calories/Distance --> RFBSL
 // *************************************************************************************************
@@ -168,13 +168,13 @@ const struct menu menu_L1_Speed =
 	FUNCTION(update_time),				// new display data
 	&menu_L1_Acceleration,
 };
-// Line1 - Acceleration
-const struct menu menu_L1_Acceleration =
+// Line1 - Fall_Detection
+const struct menu menu_L1_Fall_Detection =
 {
-	FUNCTION(sx_acceleration),			// direct function
-	FUNCTION(dummy),					// sub menu function
-	FUNCTION(display_acceleration),		// display function
-	FUNCTION(update_acceleration),		// new display data
+	FUNCTION(dummy),                    // direct function
+	FUNCTION(dummy),                    // sub menu function
+	FUNCTION(display_fall_detection),   // display function
+	FUNCTION(update_fall_detection),    // new display data
 	&menu_L1_Time,
 };
 
