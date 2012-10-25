@@ -330,9 +330,17 @@ void do_fall_detection(void) // main()
     acc_data[1] = abs_acceleration(acc_data[1]);
     acc_data[2] = abs_acceleration(acc_data[2]);
 
-    // TODO: LOW PASS FILTER NEEDED HERE !!!!!!!!!!!
-
     acc_sum = sqrt(acc_data[0]*acc_data[0] + acc_data[1]*acc_data[1] + acc_data[2]*acc_data[2]);
+
+    if (sample_index == 0) {
+        sAccel.data = 32;   // This should represent around 1G in order to prevent false alarms during the initial filtration of data.
+    }
+
+    // Filter acceleration data (Low pass filter)
+    acc_sum = (u16)((acc_sum + sAccel.data * 4)/5);
+
+    // Store average acceleration
+    sAccel.data = acc_sum;
 
     write_data_to_fifo_buffer(fall_data, acc_sum);
 
@@ -360,6 +368,7 @@ void do_fall_detection(void) // main()
 }
 
 
+// TODO: FIX the display function
 // *************************************************************************************************
 // @fn          display_fall_detection
 // @brief       Display routine.
@@ -373,7 +382,7 @@ void display_fall_detection(u8 line, u8 update)
   u8 raw_data;
   u16 accel_data;
 
-  // Show warning if acceleration sensor was not initialised properly
+  // Show warning if acceleration sensor was not initialized properly
   if (!as_ok)
   {
       display_chars(LCD_SEG_L1_2_0, (u8*)"ERR", SEG_ON);

@@ -42,6 +42,9 @@ struct accel
 	// ACC_MODE_OFF, ACC_MODE_ON
 	u8			mode;
 
+    // Temporary buffer for acceleration data
+    u16         data;
+
 	// Timeout
 	u16			timeout;
 };
