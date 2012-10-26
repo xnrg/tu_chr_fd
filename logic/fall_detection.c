@@ -522,3 +522,28 @@ u16 fast_sqrt(u32 value)
     }
     return value;
 }
+
+
+
+/* ========================================================================== */
+/**
+* @fn aaaSqRoot(). Calculate sqrt of m.
+*/
+/* ========================================================================== */
+
+static int aaaSqRoot(int m)
+{
+    int    i = 0;
+    int    shiff = 0;
+
+    while( m > 100 ) {
+        shiff++;
+        m >>= 2;
+    }
+
+    while((i * i) < m ) {
+        i+=1;
+    }
+
+    return (i << shiff);
+}
