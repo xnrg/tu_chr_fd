@@ -337,10 +337,10 @@ __interrupt void TIMER0_A0_ISR(void)
 	if (is_acceleration_measurement()) 
 	{
 		// Countdown acceleration measurement timeout 
-		sAccel.timeout--;
+//		sAccel.timeout--;
 
 		// Stop measurement when timeout has elapsed
-		if (sAccel.timeout == 0) as_stop();	
+//		if (sAccel.timeout == 0) as_stop();
 		
 		// If DRDY is (still) high, request data again
 		if ((AS_INT_IN & AS_INT_PIN) == AS_INT_PIN) request.flag.acceleration_measurement = 1; 

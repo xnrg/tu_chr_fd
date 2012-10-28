@@ -78,7 +78,7 @@ u16 read_data_from_fifo_buffer(u16 * buff_addr, u8 backsamples)
 // *************************************************************************************************
 // @fn          reset_acceleration
 // @brief       Reset acceleration variables.
-// @param          none
+// @param       none
 // @return      none
 // *************************************************************************************************
 void reset_acceleration(void)
@@ -87,7 +87,50 @@ void reset_acceleration(void)
   sAccel.timeout        = 0;
 
   // Default mode is off
-  sAccel.mode            = ACCEL_MODE_OFF;
+  sAccel.mode           = ACCEL_MODE_OFF;
+
+}
+
+
+// *************************************************************************************************
+// @fn          start_acceleration
+// @brief       Starts acceleration sensor.
+// @param       none
+// @return      none
+// *************************************************************************************************
+void start_acceleration(void)
+{
+    // Start acceleration sensor
+    if (!is_acceleration_measurement())
+    {
+        // Clear previous acceleration value
+        sAccel.data = 0; // TODO: 0 ??? maybe some value for the first samples? ???
+
+        // Start sensor
+        as_start();
+
+        // Set timeout counter
+        sAccel.timeout = ACCEL_MEASUREMENT_TIMEOUT;
+
+        // Set mode
+        sAccel.mode = ACCEL_MODE_ON;
+    }
+}
+
+
+// *************************************************************************************************
+// @fn          stop_acceleration
+// @brief       Stops acceleration sensor.
+// @param       none
+// @return      none
+// *************************************************************************************************
+void stop_acceleration(void)
+{
+    // Stop acceleration sensor
+    as_stop();
+
+    // Clear mode
+    sAccel.mode = ACCEL_MODE_OFF;
 }
 
 
@@ -95,7 +138,7 @@ void reset_acceleration(void)
 // @fn          acceleration_value_is_positive
 // @brief       Returns 1 if 2's complement number is positive
 // @param       u8 value    2's complement number
-// @return      u8          1 = number is positive, 0 = number is negavtive
+// @return      u8          1 = number is positive, 0 = number is negative
 // *************************************************************************************************
 u8 acceleration_value_is_positive(u8 value)
 {
@@ -265,24 +308,6 @@ u8 detect_motionlessness(void)
 
 
 // *************************************************************************************************
-// @fn          sx_acceleration
-// @brief       Acceleration direct function. Button UP switches between X/Y/Z values.
-// @param       u8 line        LINE2
-// @return      none
-// *************************************************************************************************
-void sx_acceleration(u8 line)
-{
-  if (++sAccel.view_style > 2) sAccel.view_style = 0;
-
-  // Reset current acceleration value
-  sAccel.data = 0;
-
-  // Get data from sensor
-  as_get_data(sAccel.xyz);
-}
-
-
-// *************************************************************************************************
 // @fn          sx_fall_detection
 // @brief       Fall detection direct user function. Button DOWN starts/stops the fall detection.
 // @param       u8 line    LINE2
@@ -290,16 +315,21 @@ void sx_acceleration(u8 line)
 // *************************************************************************************************
 void sx_fall_detection(u8 line)
 {
-    // TODO: FIX THIS FUNCTION !!!
-    // DOWN: RUN, STOP
-    if(button.flag.down) {
-       if (sStopwatch.state == STOPWATCH_STOP) {
-           // (Re)start stopwatch
-           start_stopwatch();
-       } else {
-           // Stop stopwatch
-           stop_stopwatch();
-       }
+    if(alarm_is_on) {
+        if(any_button) {
+            stop_alarm();
+        }
+    } else {
+        // DOWN: RUN, STOP
+        if(button.flag.down) {
+            if (sAccel.mode == ACCEL_MODE_OFF) {
+                // (Re)start fall detection (acceleration sensor)
+                start_acceleration();
+            } else {
+                // Stop fall detection (acceleration sensor)
+                stop_acceleration();
+            }
+        }
     }
 }
 
@@ -357,8 +387,7 @@ void do_fall_detection(void) // main()
             // TODO: Start alarm. (Maybe use just a few beeps the first 10 seconds.)
             // TODO: Wait for button press to disable the alarm.
             // TODO: Restart fall detection.
-            //display.flag.update_fall_detection = 1;
-            display.flag.update_acceleration = 1;
+            display.flag.update_fall_detection = 1;
         }
     } else {
         if (++sample_index > FALL_DETECTION_WINDOW_IN_SAMPLES) {    // Wait until data array is filled with data.
@@ -393,24 +422,7 @@ void display_fall_detection(u8 line, u8 update)
       if (update == DISPLAY_LINE_UPDATE_FULL)
       {
           {
-              // Start acceleration sensor
-              if (!is_acceleration_measurement())
-              {
-                  // Clear previous acceleration value
-                  sAccel.data = 0;
-
-                  // Start sensor
-                  as_start();
-
-                  // Set timeout counter
-                  sAccel.timeout = ACCEL_MEASUREMENT_TIMEOUT;
-
-                  // Set mode
-                  sAccel.mode = ACCEL_MODE_ON;
-
-                  // Start with Y-axis values
-                  sAccel.view_style = DISPLAY_ACCEL_Y;
-              }
+//              start_acceleration();
 
               // Display decimal point
               display_symbol(LCD_SEG_L1_DP1, SEG_ON);
@@ -457,11 +469,9 @@ void display_fall_detection(u8 line, u8 update)
       }
       else if (update == DISPLAY_LINE_CLEAR)
       {
-          // Stop acceleration sensor
-          as_stop();
-
-          // Clear mode
-          sAccel.mode = ACCEL_MODE_OFF;
+          if (sAccel.mode == ACCEL_MODE_ON) {
+              stop_acceleration();
+          }
 
           // Clean up display
           display_symbol(LCD_SEG_L1_DP1, SEG_OFF);

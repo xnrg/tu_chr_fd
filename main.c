@@ -67,7 +67,7 @@
 #include "bluerobin.h"
 #include "rfsimpliciti.h"
 #include "simpliciti.h"
-#include "test.h"
+//#include "test.h"
 
 
 // *************************************************************************************************
@@ -135,7 +135,7 @@ int main(void)
 	init_global_variables();
 	
 	// Branch to welcome screen
-	test_mode();
+//	test_mode();
 	
 	// Main control loop: wait in low power mode until some event needs to be processed
 	while(1)
@@ -293,7 +293,7 @@ void init_global_variables(void)
 //	ptrMenu_L1 = &menu_L1_Speed;
 //	ptrMenu_L1 = &menu_L1_Temperature;
 //	ptrMenu_L1 = &menu_L1_Altitude;
-//	ptrMenu_L1 = &menu_L1_Acceleration;
+//	ptrMenu_L1 = &menu_L1_Fall_Detection;
 	ptrMenu_L2 = &menu_L2_Date;
 //	ptrMenu_L2 = &menu_L2_Stopwatch;
 //	ptrMenu_L2 = &menu_L2_Rf;
@@ -343,8 +343,8 @@ void init_global_variables(void)
 	// Reset altitude measurement
 	reset_altitude_measurement();
 	
-	// Reset acceleration measurement
-	reset_acceleration();
+	// Reset fall detection variables and acceleration measurement
+	reset_fall_detection();
 	
 	// Reset BlueRobin stack
 	reset_bluerobin();
@@ -514,7 +514,7 @@ void process_requests(void)
   	if (request.flag.altitude_measurement) do_altitude_measurement(FILTER_ON);
 	
 	// Do acceleration measurement
-	if (request.flag.acceleration_measurement) do_acceleration_measurement();
+	if (request.flag.acceleration_measurement) do_fall_detection();
 	
 	// Do voltage measurement
 	if (request.flag.voltage_measurement) battery_measurement();

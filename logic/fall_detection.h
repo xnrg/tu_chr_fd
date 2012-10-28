@@ -16,11 +16,11 @@
 // *************************************************************************************************
 // Defines section
 
-#define ACCEL_MODE_OFF		(0u)
-#define ACCEL_MODE_ON		(1u)
+#define ACCEL_MODE_OFF      (0u)
+#define ACCEL_MODE_ON       (1u)
 
 // Stop acceleration measurement after 60 minutes to save battery
-#define ACCEL_MEASUREMENT_TIMEOUT		(60*60u)
+#define ACCEL_MEASUREMENT_TIMEOUT       (60*60u)
 
 // Fall detection defines
 #define ACC_SAMPLING_RATE 40
@@ -40,13 +40,13 @@
 struct accel
 {
 	// ACC_MODE_OFF, ACC_MODE_ON
-	u8			mode;
+	u8          mode;
 
     // Temporary buffer for acceleration data
     u16         data;
 
 	// Timeout
-	u16			timeout;
+	u16         timeout;
 };
 extern struct accel sAccel;
 

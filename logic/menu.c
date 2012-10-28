@@ -103,7 +103,7 @@ u8 update_battery_voltage(void)
 }
 u8 update_fall_detection(void)
 {
-	return (display.flag.update_acceleration);
+	return (display.flag.update_fall_detection);
 }
 
 // *************************************************************************************************
@@ -166,12 +166,12 @@ const struct menu menu_L1_Speed =
 	FUNCTION(dummy),					// sub menu function
 	FUNCTION(display_speed),			// display function
 	FUNCTION(update_time),				// new display data
-	&menu_L1_Acceleration,
+	&menu_L1_Fall_Detection,
 };
 // Line1 - Fall_Detection
 const struct menu menu_L1_Fall_Detection =
 {
-	FUNCTION(dummy),                    // direct function
+	FUNCTION(sx_fall_detection),        // direct function
 	FUNCTION(dummy),                    // sub menu function
 	FUNCTION(display_fall_detection),   // display function
 	FUNCTION(update_fall_detection),    // new display data
