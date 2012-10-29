@@ -103,8 +103,8 @@ void start_acceleration(void)
     // Start acceleration sensor
     if (!is_acceleration_measurement())
     {
-        // Clear previous acceleration value
-        sAccel.data = 0; // TODO: 0 ??? maybe some value for the first samples? ???
+        // Set initial acceleration value corresponding to 1G to prevent false alarms on startup
+        sAccel.data = 32; // TODO: Check if 32 is the correct value corresponding to 1G
 
         // Start sensor
         as_start();
@@ -316,12 +316,12 @@ u8 detect_motionlessness(void)
 void sx_fall_detection(u8 line)
 {
     if(alarm_is_on) {
-        if(any_button) {
+        if(button.flag.up) { // Stop alarm if UP button is pressed.
             stop_alarm();
         }
     } else {
-        // DOWN: RUN, STOP
-        if(button.flag.down) {
+        // BUTTON UP: RUN, STOP
+        if(button.flag.up) {
             if (sAccel.mode == ACCEL_MODE_OFF) {
                 // (Re)start fall detection (acceleration sensor)
                 start_acceleration();
@@ -334,7 +334,9 @@ void sx_fall_detection(u8 line)
 }
 
 
+// TODO: lock buttons after fall detection is activated, but unlock them if the alarm has been triggered
 // TODO: mx_fall_detection() - when NUM or STAR button is long pressed (for L1 or L2)
+// TODO: maybe put the alarm stop in the mx_fall_detection function (long press of NUM button)
 
 
 // *************************************************************************************************
@@ -361,10 +363,6 @@ void do_fall_detection(void) // main()
     acc_data[2] = abs_acceleration(acc_data[2]);
 
     acc_sum = sqrt(acc_data[0]*acc_data[0] + acc_data[1]*acc_data[1] + acc_data[2]*acc_data[2]);
-
-    if (sample_index == 0) {
-        sAccel.data = 32;   // This should represent around 1G in order to prevent false alarms during the initial filtration of data.
-    }
 
     // Filter acceleration data (Low pass filter)
     acc_sum = (u16)((acc_sum + sAccel.data * 4)/5);

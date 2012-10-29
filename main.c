@@ -513,7 +513,7 @@ void process_requests(void)
 	// Do pressure measurement
   	if (request.flag.altitude_measurement) do_altitude_measurement(FILTER_ON);
 	
-	// Do acceleration measurement
+	// Do fall detection if new acceleration data is present
 	if (request.flag.acceleration_measurement) do_fall_detection();
 	
 	// Do voltage measurement
