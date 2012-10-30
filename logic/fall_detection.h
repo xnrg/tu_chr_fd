@@ -29,9 +29,11 @@
 #define FREE_FALL_BACKTRACK_IN_SECONDS 1
 #define FREE_FALL_BACKTRACK_IN_SAMPLES (FREE_FALL_BACKTRACK_IN_SECONDS * ACC_SAMPLING_RATE)
 #define MAX_IMPACT_LENGTH_SAMPLES ACC_SAMPLING_RATE
+#define MAX_MOTIONLESSNESS_SAMPLES 2*ACC_SAMPLING_RATE
 #define IMPACT_SLEWRATE_THRESHOLD 1024 // Difference between 2 samples TODO: This is just an example.
 #define IMPACT_STRENGTH_THRESHOLD 2048      // TODO: Use 7-bit values or 8192 max ???
 #define FREE_FALL_THRESHOLD 640             // TODO: Use 7-bit values or 8192 max ???
+#define MOTIONLESSNESS_THESHOLD 3000        // TODO: Use 7-bit values or 8192 max ???
 #define RATING_THRESHOLD 5                  // TODO: This is just an example - modify it appropriately.
 
 

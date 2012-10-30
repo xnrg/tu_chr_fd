@@ -213,11 +213,11 @@ u16 convert_acceleration_value_to_mgrav(u8 value)
 u8 detect_free_fall(void)
 {
     u8 event_weight = 0;
-    u8 i = 0;
+    u8 sample_index = 0;
     u16 FreeFallSum = 0;
 
-    for (i = FALL_DETECTION_WINDOW_IN_SAMPLES - FREE_FALL_BACKTRACK_IN_SAMPLES; i < FALL_DETECTION_WINDOW_IN_SAMPLES; i++) {
-        FreeFallSum += *(read_data_from_fifo_buffer(fall_data, i)); // Read the oldest samples stored.
+    for (sample_index = FALL_DETECTION_WINDOW_IN_SAMPLES - FREE_FALL_BACKTRACK_IN_SAMPLES; sample_index < FALL_DETECTION_WINDOW_IN_SAMPLES; sample_index++) {
+        FreeFallSum += *(read_data_from_fifo_buffer(fall_data, sample_index)); // Read the oldest samples stored.
     }
 
     if (FreeFallSum <= (FREE_FALL_THRESHOLD * FREE_FALL_BACKTRACK_IN_SAMPLES)) {
@@ -250,10 +250,10 @@ u8 detect_impact(void)
     u8 highest_peak_index;
 
     /* Find the 5 highest acceleration peaks during the impact */
-    for (sample_index = 0; sample_index < MAX_IMPACT_LENGTH_SAMPLES - 1; sample_index++) {
-        temp_buff[0] = read_data_from_fifo_buffer(fall_data, FALL_DETECTION_WINDOW_IN_SAMPLES - FREE_FALL_BACKTRACK_IN_SAMPLES - sample_index - 1);
-        temp_buff[1] = read_data_from_fifo_buffer(fall_data, FALL_DETECTION_WINDOW_IN_SAMPLES - FREE_FALL_BACKTRACK_IN_SAMPLES - sample_index - 2);
-        temp_buff[2] = read_data_from_fifo_buffer(fall_data, FALL_DETECTION_WINDOW_IN_SAMPLES - FREE_FALL_BACKTRACK_IN_SAMPLES - sample_index - 3);
+    for (sample_index = FALL_DETECTION_WINDOW_IN_SAMPLES - FREE_FALL_BACKTRACK_IN_SAMPLES; sample_index >= FALL_DETECTION_WINDOW_IN_SAMPLES - FREE_FALL_BACKTRACK_IN_SAMPLES - MAX_IMPACT_LENGTH_SAMPLES; sample_index--) {
+        temp_buff[0] = read_data_from_fifo_buffer(fall_data, sample_index - 0);
+        temp_buff[1] = read_data_from_fifo_buffer(fall_data, sample_index - 1);
+        temp_buff[2] = read_data_from_fifo_buffer(fall_data, sample_index - 2);
         if ((*temp_buff[1] > *temp_buff[0]) && (*temp_buff[1] > *temp_buff[2])) {
             if (peak_index < 5) {
                 peaks_buff[peak_index] = temp_buff[1];
@@ -303,6 +303,30 @@ u8 detect_impact(void)
 u8 detect_motionlessness(void)
 {
     u8 event_weight = 0;
+    u8 sample_index = 0;
+    u16 temp_buff1 = 0;
+    u16 temp_buff2 = 0;
+    u16 MotionSum = 0;
+
+    temp_buff1 = *(read_data_from_fifo_buffer(fall_data, MAX_MOTIONLESSNESS_SAMPLES - 1));
+
+    for (sample_index = MAX_MOTIONLESSNESS_SAMPLES - 2; sample_index >= 0; sample_index--) {
+        temp_buff2 = *(read_data_from_fifo_buffer(fall_data, sample_index));
+        if (temp_buff1 >= temp_buff2) {
+            MotionSum += temp_buff1 - temp_buff2;
+        } else {
+            MotionSum += temp_buff2 - temp_buff2;
+        }
+        temp_buff1 = temp_buff2;
+    }
+
+    if (MotionSum <= MOTIONLESSNESS_THESHOLD) {
+        event_weight = (MotionSum - MOTIONLESSNESS_THESHOLD)/2048;  // TODO: This is just an example.
+        if ((MotionSum - MOTIONLESSNESS_THESHOLD)%2048 >= 1024) {   // TODO: This is just an example.
+            event_weight++;
+        }
+    }
+
     return event_weight;
 }
 
