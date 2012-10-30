@@ -420,37 +420,14 @@ void display_fall_detection(u8 line, u8 update)
       if (update == DISPLAY_LINE_UPDATE_FULL)
       {
           {
-//              start_acceleration();
-
               // Display decimal point
               display_symbol(LCD_SEG_L1_DP1, SEG_ON);
           }
       }
       else if (update == DISPLAY_LINE_UPDATE_PARTIAL)
       {
-          // Convert X/Y/Z values to mg
-          switch (sAccel.view_style)
-          {
-              case DISPLAY_ACCEL_X:     raw_data = sAccel.xyz[0];
-                                      display_char(LCD_SEG_L1_3, 'X', SEG_ON);
-                                      break;
-              case DISPLAY_ACCEL_Y:     raw_data = sAccel.xyz[1];
-                                      display_char(LCD_SEG_L1_3, 'Y', SEG_ON);
-                                      break;
-              default:                 raw_data = sAccel.xyz[2];
-                                      display_char(LCD_SEG_L1_3, 'Z', SEG_ON);
-                                      break;
-          }
-          accel_data = convert_acceleration_value_to_mgrav(raw_data) / 10;
+          display_char(LCD_SEG_L1_3, 'X', SEG_ON);
 
-          // Filter acceleration
-          accel_data = (u16)((accel_data * 0.2) + (sAccel.data * 0.8));
-
-          // Store average acceleration
-          sAccel.data = accel_data;
-
-          // Display acceleration in x.xx format
-          str = itoa(accel_data, 3, 0);
           display_chars(LCD_SEG_L1_2_0, str, SEG_ON);
 
           // Display sign
