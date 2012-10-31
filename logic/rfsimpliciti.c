@@ -50,7 +50,7 @@
 #include "radio.h"
 
 // logic
-#include "acceleration.h"
+#include "fall_detection.h"
 #include "rfsimpliciti.h"
 #include "bluerobin.h"
 #include "simpliciti.h"

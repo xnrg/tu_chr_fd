@@ -63,7 +63,7 @@
 #include "temperature.h"
 #include "altitude.h"
 #include "battery.h"
-#include "acceleration.h"
+#include "fall_detection.h"
 #include "bluerobin.h"
 #include "rfsimpliciti.h"
 #include "simpliciti.h"

@@ -5,10 +5,12 @@
 #include "project.h"
 
 // driver
+#include "buzzer.h"
 #include "display.h"
 #include "vti_as.h"
 
 // logic
+#include "alarm.h"
 #include "fall_detection.h"
 #include "simpliciti.h"
 #include "user.h"
@@ -83,12 +85,8 @@ u16 read_data_from_fifo_buffer(u16 * buff_addr, u8 backsamples)
 // *************************************************************************************************
 void reset_acceleration(void)
 {
-  // Clear timeout counter
-  sAccel.timeout        = 0;
-
-  // Default mode is off
-  sAccel.mode           = ACCEL_MODE_OFF;
-
+    // Default mode is off
+    sAccel.mode           = ACCEL_MODE_OFF;
 }
 
 
@@ -106,14 +104,13 @@ void start_acceleration(void)
         // Set initial acceleration value corresponding to 1G to prevent false alarms on startup
         sAccel.data = 32; // TODO: Check if 32 is the correct value corresponding to 1G
 
-        // Start sensor
-        as_start();
-
-        // Set timeout counter
-        sAccel.timeout = ACCEL_MEASUREMENT_TIMEOUT;
-
         // Set mode
         sAccel.mode = ACCEL_MODE_ON;
+
+
+
+        // Start sensor
+        as_start();
     }
 }
 
@@ -172,7 +169,7 @@ u8 abs_acceleration(u8 value)
 // *************************************************************************************************
 u8 is_acceleration_measurement(void)
 {
-  return ((sAccel.mode == ACCEL_MODE_ON) && (sAccel.timeout > 0));
+  return (sAccel.mode == ACCEL_MODE_ON);
 }
 
 
@@ -339,11 +336,7 @@ u8 detect_motionlessness(void)
 // *************************************************************************************************
 void sx_fall_detection(u8 line)
 {
-    if(alarm_is_on) {
-        if(button.flag.up) { // Stop alarm if UP button is pressed.
-            stop_alarm();
-        }
-    } else {
+    if (sAlarm.state != ALARM_ON) { // During ALARM_ON any button stops the alarm. (in ports.c)
         // BUTTON UP: RUN, STOP
         if(button.flag.up) {
             if (sAccel.mode == ACCEL_MODE_OFF) {
@@ -359,7 +352,7 @@ void sx_fall_detection(u8 line)
 
 
 // TODO: lock buttons after fall detection is activated, but unlock them if the alarm has been triggered
-// TODO: mx_fall_detection() - when NUM or STAR button is long pressed (for L1 or L2)
+// TODO: mx_fall_detection() - when NUM or STAR button is long pressed (for L1 or L2) - is it needed???
 // TODO: maybe put the alarm stop in the mx_fall_detection function (long press of NUM button)
 
 
@@ -397,19 +390,25 @@ void do_fall_detection(void) // main()
     write_data_to_fifo_buffer(fall_data, acc_sum);
 
     if (isDelayOver) {
-        free_fall_rating = detect_free_fall();
-        if (free_fall_rating > 0) {
-            impact_rating = detect_impact();
-        }
-        if (impact_rating > 0) {
-            motionlessness_rating = detect_motionlessness();
-        }
-        if ((free_fall_rating + impact_rating + motionlessness_rating) > RATING_THRESHOLD) {
-            // TODO: Stop fall detection.
-            // TODO: Start alarm. (Maybe use just a few beeps the first 10 seconds.)
-            // TODO: Wait for button press to disable the alarm.
-            // TODO: Restart fall detection.
-            display.flag.update_fall_detection = 1;
+        if (sAlarm.state != ALARM_ON) {
+            // Start fall detection algorithm
+            free_fall_rating = detect_free_fall();
+            if (free_fall_rating > 0) {
+                impact_rating = detect_impact();
+            }
+            if (impact_rating > 0) {
+                motionlessness_rating = detect_motionlessness();
+            }
+            if ((free_fall_rating + impact_rating + motionlessness_rating) > RATING_THRESHOLD) {
+
+                // Stop fall detection and start alarm. (Alarm timeout is 10 seconds.)
+                sAlarm.state = ALARM_ON;
+                // Display that fall has happened.
+                // TODO: Later add blinking backlight support.
+                display.flag.update_fall_detection = 1;
+                // Alarm is disabled on any button press and fall detection is resumed. (in ports.c)
+                // TODO: Later add functionality to stop alarm only on long button press.
+            }
         }
     } else {
         if (++sample_index > FALL_DETECTION_WINDOW_IN_SAMPLES) {    // Wait until data array is filled with data.
@@ -419,7 +418,8 @@ void do_fall_detection(void) // main()
 }
 
 
-// TODO: FIX the display function
+// TODO: FIX the display function - RIGHT NOW IT'S WORSE THAN SHIT !!!
+
 // *************************************************************************************************
 // @fn          display_fall_detection
 // @brief       Display routine.
@@ -443,28 +443,11 @@ void display_fall_detection(u8 line, u8 update)
       // Redraw whole screen
       if (update == DISPLAY_LINE_UPDATE_FULL)
       {
-          {
-              // Display decimal point
-              display_symbol(LCD_SEG_L1_DP1, SEG_ON);
-          }
+          display_chars(LCD_SEG_L1_3_0, (u8 *)"TEST", SEG_ON);
       }
       else if (update == DISPLAY_LINE_UPDATE_PARTIAL)
       {
-          display_char(LCD_SEG_L1_3, 'X', SEG_ON);
-
-          display_chars(LCD_SEG_L1_2_0, str, SEG_ON);
-
-          // Display sign
-          if (acceleration_value_is_positive(raw_data))
-          {
-              display_symbol(LCD_SYMB_ARROW_UP, SEG_ON);
-              display_symbol(LCD_SYMB_ARROW_DOWN, SEG_OFF);
-          }
-          else
-          {
-              display_symbol(LCD_SYMB_ARROW_UP, SEG_OFF);
-              display_symbol(LCD_SYMB_ARROW_DOWN, SEG_ON);
-          }
+          display_chars(LCD_SEG_L1_3_0, (u8 *)"FALL", SEG_ON_BLINK_ON);
       }
       else if (update == DISPLAY_LINE_CLEAR)
       {

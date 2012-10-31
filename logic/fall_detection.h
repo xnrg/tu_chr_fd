@@ -46,9 +46,6 @@ struct accel
 
     // Temporary buffer for acceleration data
     u16         data;
-
-	// Timeout
-	u16         timeout;
 };
 extern struct accel sAccel;
 

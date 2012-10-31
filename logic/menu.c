@@ -57,7 +57,7 @@
 #include "battery.h"
 #include "bluerobin.h"
 #include "rfsimpliciti.h"
-#include "acceleration.h"
+#include "fall_detection.h"
 #include "rfbsl.h"
 
 

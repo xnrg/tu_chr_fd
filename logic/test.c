@@ -50,7 +50,7 @@
 #include "timer.h"
 
 // logic
-#include "acceleration.h"
+#include "fall_detection.h"
 #include "altitude.h"
 #include "temperature.h"
 #include "bluerobin.h"
@@ -82,7 +82,7 @@ void test_mode(void)
 	Timer0_Stop();
 	
 	// Disable LCD charge pump while in standby mode 
-	// This reduces current consumption by ca. 5µA to ca. 10µA
+	// This reduces current consumption by ca. 5ï¿½A to ca. 10ï¿½A
 	LCDBVCTL = 0;
 	
 	// Show welcome screen 
@@ -231,7 +231,7 @@ void test_mode(void)
 					// Hold watchdog
 					WDTCTL = WDTPW + WDTHOLD;
 					
-					// Sleep until button is pressed (ca. 4µA current consumption)
+					// Sleep until button is pressed (ca. 4ï¿½A current consumption)
 					_BIS_SR(LPM4_bits + GIE);
 					__no_operation();
 				
