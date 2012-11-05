@@ -343,9 +343,6 @@ void init_global_variables(void)
 	// Reset altitude measurement
 	reset_altitude_measurement();
 	
-	// Reset fall detection variables and acceleration measurement
-	reset_fall_detection();
-	
 	// Reset BlueRobin stack
 	reset_bluerobin();
 
