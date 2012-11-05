@@ -8,6 +8,7 @@
 #include "buzzer.h"
 #include "display.h"
 #include "vti_as.h"
+#include "ports.h"
 
 // logic
 #include "alarm.h"
@@ -46,12 +47,11 @@ extern u8 as_ok;
 void write_data_to_fifo_buffer(u16 * buff_addr, u16 data)
 {
     static u8 writeIndex = 0;
-    static u16 * position = NULL;
 
     if (writeIndex >= FALL_DETECTION_WINDOW_IN_SAMPLES) {
         writeIndex = 0;
     }
-    (u16 *)(buff_addr + writeIndex) = data;
+    *(u16 *)(buff_addr + writeIndex) = data;
     writeIndex++;
 
     readIndex = (u16 *)(buff_addr + writeIndex - 1);
@@ -63,9 +63,9 @@ void write_data_to_fifo_buffer(u16 * buff_addr, u16 data)
 // @brief       Reads data from the FIFO buffer with sample offset.
 // @param       u16 * buff_addr - Address of FIFO buffer.
 //              u8 backsamples  - Sample back offset.
-// @return      u16             - Value of a previous sample.
+// @return      u16 *           - Address of a previous sample.
 // *************************************************************************************************
-u16 read_data_from_fifo_buffer(u16 * buff_addr, u8 backsamples)
+u16 * read_data_from_fifo_buffer(u16 * buff_addr, u8 backsamples)
 {
     u8 offset;
     offset = (readIndex - buff_addr)/sizeof(u16);
@@ -368,7 +368,6 @@ void do_fall_detection(void) // main()
     u16 acc_sum = 0;
     static u8 isDelayOver = 0;
     static u8 sample_index = 0;
-    u16 * buff_current_position = NULL;
     u8 impact_rating = 0;
     u8 free_fall_rating = 0;
     u8 motionlessness_rating = 0;
@@ -429,10 +428,6 @@ void do_fall_detection(void) // main()
 // *************************************************************************************************
 void display_fall_detection(u8 line, u8 update)
 {
-  u8 * str;
-  u8 raw_data;
-  u16 accel_data;
-
   // Show warning if acceleration sensor was not initialized properly
   if (!as_ok)
   {
@@ -466,66 +461,66 @@ void display_fall_detection(u8 line, u8 update)
 
 
 
-
-// TODO: WTF IS THIS - CHECK HOW IT WORKS !!!!!!
-u16 fast_sqrt(u32 value)
-{
-//    MSP430 Family Mixed-Signal Microcontroller Application Reports - SLAA024
 //
-//    5.1.8.1 Square Root for 32-Bit Integer Numbers
+//// TODO: WTF IS THIS - CHECK HOW IT WORKS !!!!!!
+//u16 fast_sqrt(u32 value)
+//{
+////    MSP430 Family Mixed-Signal Microcontroller Application Reports - SLAA024
+////
+////    5.1.8.1 Square Root for 32-Bit Integer Numbers
+////
+////    The square root of a 30-bit integer number is calculated. The result contains
+////    15 correct fractional bits. The subroutine uses the method known from the find-
+////    ing of a square root by hand. This method is much faster than the widely known
+////    NEWTONIAN method and only 720 cycles are needed. This subroutine was
+////    developed by Jürg Müller Software–Art GmbH/Zurich. The C program code
+////    needed is also shown:
 //
-//    The square root of a 30-bit integer number is calculated. The result contains
-//    15 correct fractional bits. The subroutine uses the method known from the find-
-//    ing of a square root by hand. This method is much faster than the widely known
-//    NEWTONIAN method and only 720 cycles are needed. This subroutine was
-//    developed by Jürg Müller Software–Art GmbH/Zurich. The C program code
-//    needed is also shown:
-
-    u32 y, h;
-    u8 i = 0;
-    h = value;
-    value = y = 0;
-
-    for (i = 0; i < 32; i++) {
-        // value is actually 2*value
-        value <<= 1; value++;   // 4*value + 1
-        if (y < value) {
-            value -= 2;
-        } else {
-            y -= value;
-        }
-        value++;
-        y <<= 1;    // <y, h> <<= 2
-        if (h & Minus) y++;
-        h <<= 1;
-        y <<= 1;
-        if (h & Minus) y++;
-        h <<= 1;
-    }
-    return value;
-}
-
-
-
-/* ========================================================================== */
-/**
-* @fn aaaSqRoot(). Calculate sqrt of m.
-*/
-/* ========================================================================== */
-
-static int aaaSqRoot(int m)
-{
-    int    i = 0;
-    int    shiff = 0;
-
-    while( m > 100 ) {
-        shiff++;
-        m >>= 2;
-    }
-
-    while((i * i) < m ) {
-        i+=1;
-    }
-
-    return (i << shiff);
-}
+//    u32 y, h;
+//    u8 i = 0;
+//    h = value;
+//    value = y = 0;
+//
+//    for (i = 0; i < 32; i++) {
+//        // value is actually 2*value
+//        value <<= 1; value++;   // 4*value + 1
+//        if (y < value) {
+//            value -= 2;
+//        } else {
+//            y -= value;
+//        }
+//        value++;
+//        y <<= 1;    // <y, h> <<= 2
+//        if (h & Minus) y++;
+//        h <<= 1;
+//        y <<= 1;
+//        if (h & Minus) y++;
+//        h <<= 1;
+//    }
+//    return value;
+//}
+//
+//
+//
+///* ========================================================================== */
+///**
+//* @fn aaaSqRoot(). Calculate sqrt of m.
+//*/
+///* ========================================================================== */
+//
+//static int aaaSqRoot(int m)
+//{
+//    int    i = 0;
+//    int    shiff = 0;
+//
+//    while( m > 100 ) {
+//        shiff++;
+//        m >>= 2;
+//    }
+//
+//    while((i * i) < m ) {
+//        i+=1;
+//    }
+//
+//    return (i << shiff);
+//}

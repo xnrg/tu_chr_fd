@@ -357,7 +357,7 @@ void simpliciti_get_ed_data_callback(void)
 			request.flag.acceleration_measurement = 0;
 			
 			// Get data from sensor
-			as_get_data(sAccel.xyz);
+//			as_get_data(sAccel.xyz);
 			
 			// Transmit only every 3rd data set (= 33 packets / second) 
 			if (packet_counter++ > 1)
@@ -366,9 +366,12 @@ void simpliciti_get_ed_data_callback(void)
 				packet_counter = 0;
 	
 				// Store XYZ data in SimpliciTI variable
-				simpliciti_data[1] = sAccel.xyz[0];
-				simpliciti_data[2] = sAccel.xyz[1];
-				simpliciti_data[3] = sAccel.xyz[2];
+//				simpliciti_data[1] = sAccel.xyz[0];
+//				simpliciti_data[2] = sAccel.xyz[1];
+//				simpliciti_data[3] = sAccel.xyz[2];
+				simpliciti_data[1] = 0;
+                simpliciti_data[2] = 0;
+                simpliciti_data[3] = 0;
 			
 				// Trigger packet sending
 				simpliciti_flag |= SIMPLICITI_TRIGGER_SEND_DATA;
