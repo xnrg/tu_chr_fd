@@ -64,7 +64,9 @@
 #include "altitude.h"
 #include "battery.h"
 #include "fall_detection.h"
+#ifdef USE_BLUEROBIN
 #include "bluerobin.h"
+#endif //USE_BLUEROBIN
 #include "rfsimpliciti.h"
 #include "simpliciti.h"
 //#include "test.h"
@@ -289,8 +291,10 @@ void init_global_variables(void)
 	// set menu pointers to default menu items
 	ptrMenu_L1 = &menu_L1_Time;
 //	ptrMenu_L1 = &menu_L1_Alarm;
+#ifdef USE_BLUEROBIN
 //	ptrMenu_L1 = &menu_L1_Heartrate;
 //	ptrMenu_L1 = &menu_L1_Speed;
+#endif //USE_BLUEROBIN
 //	ptrMenu_L1 = &menu_L1_Temperature;
 //	ptrMenu_L1 = &menu_L1_Altitude;
 //	ptrMenu_L1 = &menu_L1_Fall_Detection;
@@ -299,8 +303,10 @@ void init_global_variables(void)
 //	ptrMenu_L2 = &menu_L2_Rf;
 //	ptrMenu_L2 = &menu_L2_Ppt;
 //	ptrMenu_L2 = &menu_L2_Sync;
+#ifdef USE_BLUEROBIN
 //	ptrMenu_L2 = &menu_L2_Distance;
 //	ptrMenu_L2 = &menu_L2_Calories;
+#endif //USE_BLUEROBIN
 //	ptrMenu_L2 = &menu_L2_Battery;
 
 	// Assign LINE1 and LINE2 display functions
@@ -342,9 +348,11 @@ void init_global_variables(void)
 	
 	// Reset altitude measurement
 	reset_altitude_measurement();
-	
+
+#ifdef USE_BLUEROBIN
 	// Reset BlueRobin stack
 	reset_bluerobin();
+#endif //USE_BLUEROBIN
 
 	// Reset SimpliciTI stack
 	reset_rf();
@@ -598,6 +606,7 @@ void display_update(void)
 	// Restore blinking icons (blinking memory is cleared when calling set_value)
 	if (display.flag.full_update) 
 	{
+#ifdef USE_BLUEROBIN
 		if (is_bluerobin() == BLUEROBIN_CONNECTED) 
 		{
 			// Turn on beeper icon to show activity
@@ -605,6 +614,7 @@ void display_update(void)
 			display_symbol(LCD_ICON_BEEPER2, SEG_ON_BLINK_OFF);
 			display_symbol(LCD_ICON_BEEPER3, SEG_ON_BLINK_OFF);
 		}
+#endif //USE_BLUEROBIN
 	}
 	
 	// Clear display flag

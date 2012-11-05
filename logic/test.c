@@ -53,7 +53,9 @@
 #include "fall_detection.h"
 #include "altitude.h"
 #include "temperature.h"
+#ifdef USE_BLUEROBIN
 #include "bluerobin.h"
+#endif //USE_BLUEROBIN
 
 
 // *************************************************************************************************
@@ -180,6 +182,7 @@ void test_mode(void)
 								}
 								as_stop();
 								break;
+#ifdef USE_BLUEROBIN
 						case 4:	// BlueRobin test
 								button.flag.up = 1;
 								sx_bluerobin(LINE1);
@@ -188,6 +191,7 @@ void test_mode(void)
 								display_heartrate(LINE1, DISPLAY_LINE_UPDATE_FULL);
 								stop_bluerobin();
 								break;
+#endif //USE_BLUEROBIN
 					}
 					
 					// Debounce button

@@ -55,7 +55,9 @@
 #include "temperature.h"
 #include "altitude.h"
 #include "battery.h"
+#ifdef USE_BLUEROBIN
 #include "bluerobin.h"
+#endif //USE_BLUEROBIN
 #include "rfsimpliciti.h"
 #include "fall_detection.h"
 #include "rfbsl.h"
@@ -109,9 +111,15 @@ u8 update_fall_detection(void)
 // *************************************************************************************************
 // User navigation ( [____] = default menu item after reset )
 //
+#ifdef USE_BLUEROBIN
 //	LINE1: 	[Time] -> Alarm -> Temperature -> Altitude -> Heart rate -> Speed -> Fall_Detection
 //
 //	LINE2: 	[Date] -> Stopwatch -> Battery  -> ACC -> PPT -> SYNC -> Calories/Distance --> RFBSL
+#else //USE_BLUEROBIN
+//  LINE1:  [Time] -> Alarm -> Temperature -> Altitude -> Fall_Detection
+//
+//  LINE2:  [Date] -> Stopwatch -> Battery  -> ACC -> PPT -> SYNC -> --> RFBSL
+#endif //USE_BLUEROBIN
 // *************************************************************************************************
 
 // Line1 - Time
@@ -148,6 +156,7 @@ const struct menu menu_L1_Altitude =
 	FUNCTION(mx_altitude),				// sub menu function
 	FUNCTION(display_altitude),			// display function
 	FUNCTION(update_time),				// new display data
+#ifdef USE_BLUEROBIN
 	&menu_L1_Heartrate,
 };
 // Line1 - Heart Rate
@@ -166,6 +175,7 @@ const struct menu menu_L1_Speed =
 	FUNCTION(dummy),					// sub menu function
 	FUNCTION(display_speed),			// display function
 	FUNCTION(update_time),				// new display data
+#endif //USE_BLUEROBIN
 	&menu_L1_Fall_Detection,
 };
 // Line1 - Fall_Detection
@@ -230,6 +240,7 @@ const struct menu menu_L2_Sync =
 	FUNCTION(dummy),				// sub menu function
 	FUNCTION(display_sync),			// display function
 	FUNCTION(update_time),			// new display data
+#ifdef USE_BLUEROBIN
 	&menu_L2_CalDist,
 };
 // Line2 - Calories/Distance
@@ -239,6 +250,7 @@ const struct menu menu_L2_CalDist =
 	FUNCTION(mx_caldist),			// sub menu function
 	FUNCTION(display_caldist),		// display function
 	FUNCTION(update_time),			// new display data
+#endif //USE_BLUEROBIN
 	&menu_L2_RFBSL,
 };
 // Line2 - RFBSL

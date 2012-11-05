@@ -51,7 +51,9 @@
 #include "menu.h"
 #include "clock.h"
 #include "user.h"
+#ifdef USE_BLUEROBIN
 #include "bluerobin.h"
+#endif //USE_BLUEROBIN
 #include "date.h"
 
 

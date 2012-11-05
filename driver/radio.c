@@ -44,7 +44,9 @@
 
 // logic
 #include "rfsimpliciti.h"
+#ifdef USE_BLUEROBIN
 #include "bluerobin.h"
+#endif //USE_BLUEROBIN
 
 
 // *************************************************************************************************
@@ -53,8 +55,10 @@
 // SimpliciTI CC430 radio ISR - located in SimpliciTi library
 extern void MRFI_RadioIsr(void);
 
+#ifdef USE_BLUEROBIN
 // BlueRobin CC430 radio ISR - located in BlueRobin library
 extern void BlueRobin_RadioISR_v(void);
+#endif //USE_BLUEROBIN
 
 
 // *************************************************************************************************
@@ -179,10 +183,12 @@ __interrupt void radio_ISR(void)
 	{		
 		if (rf1aivec == RF1AIV_RFIFG9)
 		{    
+#ifdef USE_BLUEROBIN
 			if ((sBlueRobin.state == BLUEROBIN_SEARCHING) || (sBlueRobin.state == BLUEROBIN_CONNECTED))
 			{
 				BlueRobin_RadioISR_v();
 			}
+#endif //USE_BLUEROBIN
 		}
 		else if (rf1aivec == RF1AIV_NONE) // RF1A interface interrupt (error etc.)
 		{

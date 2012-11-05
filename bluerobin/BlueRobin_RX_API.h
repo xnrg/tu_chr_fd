@@ -1,3 +1,4 @@
+#ifdef USE_BLUEROBIN
 // *************************************************************************************************
 //
 // Copyright 2009 BM innovations GmbH (www.bm-innovations.com), all rights reserved.
@@ -159,3 +160,4 @@ void BlueRobin_RadioISR_v(void);
 
 
 #endif /*BRRX_API_H_*/
+#endif //USE_BLUEROBIN

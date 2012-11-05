@@ -60,7 +60,9 @@
 #include "rfsimpliciti.h"
 #include "simpliciti.h"
 #include "fall_detection.h"
+#ifdef USE_BLUEROBIN
 #include "bluerobin.h"
+#endif //USE_BLUEROBIN
 #include "temperature.h"
 
 
@@ -262,8 +264,13 @@ __interrupt void TIMER0_A0_ISR(void)
 	// Set clock update flag
 	display.flag.update_time = 1;
 	
+#ifdef USE_BLUEROBIN
 	// While SimpliciTI stack operates or BlueRobin searches, freeze system state
-	if (is_rf() || is_bluerobin_searching()) 
+	if (is_rf() || is_bluerobin_searching())
+#else //USE_BLUEROBIN
+    // While SimpliciTI stack operates, freeze system state
+    if (is_rf())
+#endif //USE_BLUEROBIN
 	{
 		// SimpliciTI automatic timeout
 		if (sRFsmpl.timeout == 0) 
@@ -457,10 +464,12 @@ __interrupt void TIMER0_A1_5_ISR(void)
 		
 	switch (TA0IV)
 	{
+#ifdef USE_BLUEROBIN
 		// Timer0_A1	BlueRobin timer
 		case 0x02:	// Timer0_A1 handler
 					BRRX_TimerTask_v();
 					break;
+#endif //USE_BLUEROBIN
 
 		// Timer0_A2	1/1 or 1/100 sec Stopwatch				
 		case 0x04:	// Timer0_A2 handler

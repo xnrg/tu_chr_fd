@@ -48,7 +48,9 @@
 
 // logic
 #include "rfbsl.h"
+#ifdef USE_BLUEROBIN
 #include "bluerobin.h"
+#endif //USE_BLUEROBIN
 #include "rfsimpliciti.h"
 
 
@@ -63,8 +65,10 @@ void sx_rfbsl(u8 line)
 	// Exit if battery voltage is too low for radio operation
 	if (sys.flag.low_battery) return;
 	
+#ifdef USE_BLUEROBIN
 	// Exit if BlueRobin stack is active
 	if (is_bluerobin()) return;
+#endif //USE_BLUEROBIN
 	
 	// Exit if SimpliciTI stack is active
 	if (is_rf()) return;

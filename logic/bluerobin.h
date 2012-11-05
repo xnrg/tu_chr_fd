@@ -1,3 +1,4 @@
+#ifdef USE_BLUEROBIN
 // *************************************************************************************************
 //
 //	Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/ 
@@ -124,3 +125,4 @@ extern struct br sBlueRobin;
 // Extern section
 
 #endif /*BLUEROBIN_H_*/
+#endif //USE_BLUEROBIN

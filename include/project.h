@@ -51,6 +51,9 @@
 // Comment this define to build the application without watchdog support
 #define USE_WATCHDOG
 
+// Comment this define to build the application without bluerobin support and related functionality
+//#define USE_BLUEROBIN
+
 // Use/not use filter when measuring physical values
 #define FILTER_OFF						(0u)
 #define FILTER_ON						(1u)

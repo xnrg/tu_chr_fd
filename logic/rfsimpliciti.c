@@ -52,7 +52,9 @@
 // logic
 #include "fall_detection.h"
 #include "rfsimpliciti.h"
+#ifdef USE_BLUEROBIN
 #include "bluerobin.h"
+#endif //USE_BLUEROBIN
 #include "simpliciti.h"
 #include "clock.h"
 #include "date.h"
@@ -141,9 +143,11 @@ void sx_rf(u8 line)
 	// Exit if battery voltage is too low for radio operation
 	if (sys.flag.low_battery) return;
 
+#ifdef USE_BLUEROBIN
 	// Exit if BlueRobin stack is active
 	if (is_bluerobin()) return;
-  	
+#endif //USE_BLUEROBIN
+
   	// Start SimpliciTI in tx only mode
 	start_simpliciti_tx_only(SIMPLICITI_ACCELERATION);
 }
@@ -160,9 +164,11 @@ void sx_ppt(u8 line)
 	// Exit if battery voltage is too low for radio operation
 	if (sys.flag.low_battery) return;
 
+#ifdef USE_BLUEROBIN
 	// Exit if BlueRobin stack is active
 	if (is_bluerobin()) return;
-  	
+#endif //USE_BLUEROBIN
+
   	// Start SimpliciTI in tx only mode
 	start_simpliciti_tx_only(SIMPLICITI_BUTTONS);
 }
@@ -179,9 +185,11 @@ void sx_sync(u8 line)
 	// Exit if battery voltage is too low for radio operation
 	if (sys.flag.low_battery) return;
 
+#ifdef USE_BLUEROBIN
 	// Exit if BlueRobin stack is active
 	if (is_bluerobin()) return;
-  	
+#endif //USE_BLUEROBIN
+
   	// Start SimpliciTI in sync mode
 	start_simpliciti_sync();
 }
