@@ -21,13 +21,14 @@
 // Global Variable section
 struct accel sAccel;
 
-// TODO: static????????????
 u16 fall_data[FALL_DETECTION_WINDOW_IN_SAMPLES];
 u16 * readIndex = NULL;
 
 // Conversion values from data to mgrav taken from CMA3000-D0x datasheet (rev 0.4, table 4)
-// TODO: create array for 8g version
 const u16 mgrav_per_bit[7] = { 18, 36, 71, 143, 286, 571, 1142 };
+// TODO: Implement use (#ifdef) of the 8g values and uncomment the 2 lines below
+//const u16 mgrav_per_bit_2g[7] = { 18, 36, 71, 143, 286, 571, 1142 };
+//const u16 mgrav_per_bit_8g[7] = { 71, 143, 286, 571, 1142, 2286, 4571 };
 
 // *************************************************************************************************
 // Extern section
@@ -102,7 +103,7 @@ void start_acceleration(void)
     if (!is_acceleration_measurement())
     {
         // Set initial acceleration value corresponding to 1G to prevent false alarms on startup
-        sAccel.data = 32; // TODO: Check if 32 is the correct value corresponding to 1G
+        sAccel.data = 16; // TODO: Check if 16 is the correct value corresponding to 1G
 
         // Set mode
         sAccel.mode = ACCEL_MODE_ON;
@@ -217,10 +218,18 @@ u8 detect_free_fall(void)
         FreeFallSum += *(read_data_from_fifo_buffer(fall_data, sample_index)); // Read the oldest samples stored.
     }
 
+    // TODO: Tune the numbers for this part of the algorithm if needed.
     if (FreeFallSum <= (FREE_FALL_THRESHOLD * FREE_FALL_BACKTRACK_IN_SAMPLES)) {
-        event_weight = ((FREE_FALL_THRESHOLD * FREE_FALL_BACKTRACK_IN_SAMPLES) - FreeFallSum)/640;  // TODO: This is just an example.
-        if ((FREE_FALL_THRESHOLD*FREE_FALL_BACKTRACK_IN_SAMPLES - FreeFallSum)%640 >= 320) {        // TODO: This is just an example.
+        event_weight = ((FREE_FALL_THRESHOLD * FREE_FALL_BACKTRACK_IN_SAMPLES) - FreeFallSum)/8;
+        if ((FREE_FALL_THRESHOLD*FREE_FALL_BACKTRACK_IN_SAMPLES - FreeFallSum)%8 >= 4) {
             event_weight++;
+        }
+        if (event_weight > 0 && event_weight <=13) {
+            event_weight = 1;
+        } else if (event_weight > 13 && event_weight <=26) {
+            event_weight = 2;
+        } else if (event_weight > 26 && event_weight <=40) {
+            event_weight = 3;
         }
     }
 
@@ -242,7 +251,7 @@ u8 detect_impact(void)
     u8 event_weight = 0;
     u16 ImpactSlewRate = 0;
     u16 * temp_buff[3];
-    u16 * peaks_buff[5];
+    struct peaks sPeaks[5];
     u8 lowest_peak_index;
     u8 highest_peak_index;
 
@@ -253,24 +262,26 @@ u8 detect_impact(void)
         temp_buff[2] = read_data_from_fifo_buffer(fall_data, sample_index - 2);
         if ((*temp_buff[1] > *temp_buff[0]) && (*temp_buff[1] > *temp_buff[2])) {
             if (peak_index < 5) {
-                peaks_buff[peak_index] = temp_buff[1];
+                sPeaks[peak_index].peaksBuff = temp_buff[1];
+                sPeaks[peak_index].index = sample_index - 1;
                 peak_index++;
             } else {
                 for (i = 0; i < 4; i++) {
-                    if (*peaks_buff[i] <= *peaks_buff[i+1]) {
+                    if (*sPeaks[i].peaksBuff <= *sPeaks[i+1].peaksBuff) {
                         lowest_peak_index = i;
                     } else {
                         lowest_peak_index = i+1;
                     }
                 }
-                peaks_buff[lowest_peak_index] = temp_buff[1];
+                sPeaks[lowest_peak_index].peaksBuff = temp_buff[1];
+                sPeaks[lowest_peak_index].index = sample_index - 1;
             }
         }
     }
 
     /* Find the highest acceleration peak during the impact */
     for (i = 0; i < 4; i++) {
-        if (*peaks_buff[i] >= *peaks_buff[i+1]) {
+        if (*sPeaks[i].peaksBuff >= *sPeaks[i+1].peaksBuff) {
             highest_peak_index = i;
         } else {
             highest_peak_index = i+1;
@@ -278,11 +289,12 @@ u8 detect_impact(void)
     }
 
     /* Calculate the impact slew rate */
-    ImpactSlewRate = *peaks_buff[highest_peak_index] - *(peaks_buff[highest_peak_index]-2);
+    ImpactSlewRate = *sPeaks[highest_peak_index].peaksBuff - *(read_data_from_fifo_buffer(fall_data, sPeaks[highest_peak_index].index - 2));
 
-    if ((ImpactSlewRate >= IMPACT_SLEWRATE_THRESHOLD*2) && (*peaks_buff[highest_peak_index] >= IMPACT_STRENGTH_THRESHOLD)) {
-        event_weight = (*peaks_buff[highest_peak_index] - IMPACT_STRENGTH_THRESHOLD)/1024;    // TODO: This is just an example.
-        if ((*peaks_buff[highest_peak_index] - IMPACT_STRENGTH_THRESHOLD)%1024 >= 512) {      // TODO: This is just an example.
+    // TODO: Tune the numbers for this part of the algorithm if needed.
+    if ((ImpactSlewRate >= IMPACT_SLEWRATE_THRESHOLD) && (*sPeaks[highest_peak_index].peaksBuff >= IMPACT_STRENGTH_THRESHOLD)) {
+        event_weight = (*sPeaks[highest_peak_index].peaksBuff - IMPACT_STRENGTH_THRESHOLD)/32;
+        if ((*sPeaks[highest_peak_index].peaksBuff - IMPACT_STRENGTH_THRESHOLD)%32 >= 16) {
             event_weight++;
         }
     }
@@ -317,9 +329,10 @@ u8 detect_motionlessness(void)
         temp_buff1 = temp_buff2;
     }
 
+    // TODO: Tune the numbers for this part of the algorithm if needed.
     if (MotionSum <= MOTIONLESSNESS_THESHOLD) {
-        event_weight = (MotionSum - MOTIONLESSNESS_THESHOLD)/2048;  // TODO: This is just an example.
-        if ((MotionSum - MOTIONLESSNESS_THESHOLD)%2048 >= 1024) {   // TODO: This is just an example.
+        event_weight = (MOTIONLESSNESS_THESHOLD - MotionSum)/13;
+        if ((MOTIONLESSNESS_THESHOLD - MotionSum)%13 >= 6) {
             event_weight++;
         }
     }
@@ -398,13 +411,12 @@ void do_fall_detection(void) // main()
             if (impact_rating > 0) {
                 motionlessness_rating = detect_motionlessness();
             }
-            if ((free_fall_rating + impact_rating + motionlessness_rating) > RATING_THRESHOLD) {
+            if ((free_fall_rating + impact_rating + motionlessness_rating) >= RATING_THRESHOLD) {
 
                 // Stop fall detection and start alarm. (Alarm timeout is 10 seconds.)
                 sAlarm.state = ALARM_ON;
-                // Display that fall has happened.
+                // Use this flag to display that fall has happened in display function.
                 // TODO: Later add blinking backlight support.
-                display.flag.update_fall_detection = 1;
                 // Alarm is disabled on any button press and fall detection is resumed. (in ports.c)
                 // TODO: Later add functionality to stop alarm only on long button press.
             }
@@ -414,10 +426,10 @@ void do_fall_detection(void) // main()
             isDelayOver = 1;
         }
     }
+    // Update display function
+    display.flag.update_fall_detection = 1;
 }
 
-
-// TODO: FIX the display function - RIGHT NOW IT'S WORSE THAN SHIT !!!
 
 // *************************************************************************************************
 // @fn          display_fall_detection
@@ -428,99 +440,42 @@ void do_fall_detection(void) // main()
 // *************************************************************************************************
 void display_fall_detection(u8 line, u8 update)
 {
-  // Show warning if acceleration sensor was not initialized properly
-  if (!as_ok)
-  {
-      display_chars(LCD_SEG_L1_2_0, (u8*)"ERR", SEG_ON);
-  }
-  else
-  {
-      // Redraw whole screen
-      if (update == DISPLAY_LINE_UPDATE_FULL)
-      {
-          display_chars(LCD_SEG_L1_3_0, (u8 *)"TEST", SEG_ON);
-      }
-      else if (update == DISPLAY_LINE_UPDATE_PARTIAL)
-      {
-          display_chars(LCD_SEG_L1_3_0, (u8 *)"FALL", SEG_ON_BLINK_ON);
-      }
-      else if (update == DISPLAY_LINE_CLEAR)
-      {
-          if (sAccel.mode == ACCEL_MODE_ON) {
-              stop_acceleration();
-          }
+    // Show warning if acceleration sensor was not initialized properly
+    if (!as_ok)
+    {
+        display_chars(LCD_SEG_L1_2_0, (u8*)"ERR", SEG_ON);
+    }
+    else
+    {
+        // Redraw whole screen
+        if (update == DISPLAY_LINE_UPDATE_FULL)
+        {
+            if (sAccel.mode == ACCEL_MODE_OFF) {
+                display_chars(LCD_SEG_L1_3_0, (u8 *)"FDOF", SEG_ON);
+            } else if (sAccel.mode == ACCEL_MODE_ON) {
+                display_chars(LCD_SEG_L1_3_0, (u8 *)"FDON", SEG_ON);
+            }
+        }
+        else if (update == DISPLAY_LINE_UPDATE_PARTIAL)
+        {
+            if (sAlarm.state == ALARM_ON) {
+                display_chars(LCD_SEG_L1_3_0, (u8 *)"FALL", SEG_ON_BLINK_ON);
+            } else {
+                if (sAccel.mode == ACCEL_MODE_OFF) {
+                    display_chars(LCD_SEG_L1_3_0, (u8 *)"FDOF", SEG_ON);
+                } else if (sAccel.mode == ACCEL_MODE_ON) {
+                    display_chars(LCD_SEG_L1_3_0, (u8 *)"FDON", SEG_ON);
+                }
+            }
+        }
+        else if (update == DISPLAY_LINE_CLEAR)
+        {
+            if (sAccel.mode == ACCEL_MODE_ON) {
+                stop_acceleration();
+            }
 
-          // Clean up display
-          display_symbol(LCD_SEG_L1_DP1, SEG_OFF);
-          display_symbol(LCD_SYMB_ARROW_UP, SEG_OFF);
-          display_symbol(LCD_SYMB_ARROW_DOWN, SEG_OFF);
-      }
-  }
+            // Clean up display
+            display_symbol(LCD_SEG_L1_3_0, SEG_OFF_BLINK_OFF);
+        }
+    }
 }
-
-
-
-
-//
-//// TODO: WTF IS THIS - CHECK HOW IT WORKS !!!!!!
-//u16 fast_sqrt(u32 value)
-//{
-////    MSP430 Family Mixed-Signal Microcontroller Application Reports - SLAA024
-////
-////    5.1.8.1 Square Root for 32-Bit Integer Numbers
-////
-////    The square root of a 30-bit integer number is calculated. The result contains
-////    15 correct fractional bits. The subroutine uses the method known from the find-
-////    ing of a square root by hand. This method is much faster than the widely known
-////    NEWTONIAN method and only 720 cycles are needed. This subroutine was
-////    developed by Jürg Müller Software–Art GmbH/Zurich. The C program code
-////    needed is also shown:
-//
-//    u32 y, h;
-//    u8 i = 0;
-//    h = value;
-//    value = y = 0;
-//
-//    for (i = 0; i < 32; i++) {
-//        // value is actually 2*value
-//        value <<= 1; value++;   // 4*value + 1
-//        if (y < value) {
-//            value -= 2;
-//        } else {
-//            y -= value;
-//        }
-//        value++;
-//        y <<= 1;    // <y, h> <<= 2
-//        if (h & Minus) y++;
-//        h <<= 1;
-//        y <<= 1;
-//        if (h & Minus) y++;
-//        h <<= 1;
-//    }
-//    return value;
-//}
-//
-//
-//
-///* ========================================================================== */
-///**
-//* @fn aaaSqRoot(). Calculate sqrt of m.
-//*/
-///* ========================================================================== */
-//
-//static int aaaSqRoot(int m)
-//{
-//    int    i = 0;
-//    int    shiff = 0;
-//
-//    while( m > 100 ) {
-//        shiff++;
-//        m >>= 2;
-//    }
-//
-//    while((i * i) < m ) {
-//        i+=1;
-//    }
-//
-//    return (i << shiff);
-//}

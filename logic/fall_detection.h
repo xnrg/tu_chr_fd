@@ -30,15 +30,25 @@
 #define FREE_FALL_BACKTRACK_IN_SAMPLES (FREE_FALL_BACKTRACK_IN_SECONDS * ACC_SAMPLING_RATE)
 #define MAX_IMPACT_LENGTH_SAMPLES ACC_SAMPLING_RATE
 #define MAX_MOTIONLESSNESS_SAMPLES 2*ACC_SAMPLING_RATE
-#define IMPACT_SLEWRATE_THRESHOLD 1024 // Difference between 2 samples TODO: This is just an example.
-#define IMPACT_STRENGTH_THRESHOLD 2048      // TODO: Use 7-bit values or 8192 max ???
-#define FREE_FALL_THRESHOLD 640             // TODO: Use 7-bit values or 8192 max ???
-#define MOTIONLESSNESS_THESHOLD 3000        // TODO: Use 7-bit values or 8192 max ???
-#define RATING_THRESHOLD 5                  // TODO: This is just an example - modify it appropriately.
+// TODO: Use 7-bit values or 8192 max ???
+#define IMPACT_SLEWRATE_THRESHOLD 16    /*1024*/    // Difference between 2 samples (equals around 1G)
+#define IMPACT_STRENGTH_THRESHOLD 32    /*2048*/
+#define FREE_FALL_THRESHOLD 8           /*640*/     // This is the average of 40 samples of free falling
+#define MOTIONLESSNESS_THESHOLD 40      /*2840*/    // This is the sum of the deltas between 80 samples of motionless
+#define RATING_THRESHOLD 5                          // TODO: This is just an example - modify it appropriately.
 
 
 // *************************************************************************************************
 // Global Variable section
+struct peaks
+{
+    // Storage for the peaks addresses
+    u16 * peaksBuff;
+
+    // Sample index
+    u8 index;
+};
+
 struct accel
 {
 	// ACC_MODE_OFF, ACC_MODE_ON
