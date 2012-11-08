@@ -76,7 +76,7 @@ u8 as_write_register(u8 bAddress, u8 bData);
 // Sample rate for acceleration values in Hz
 // Valid sample rates for 2g range are:     100, 400
 // Valid sample rates for 8g range are: 40, 100, 400
-#define AS_SAMPLE_RATE       (100u)
+#define AS_SAMPLE_RATE       (40u)
 
 
 // *************************************************************************************************
